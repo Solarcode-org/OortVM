@@ -13,7 +13,7 @@ lazy_static! {
             Compile {
                 f: IRFunc::Normal(print),
                 requires: vec!["stdio.h".to_string()],
-                cfunc: "printf(\"Hello, World!\");".to_string(),
+                ccode: "printf(\"Hello, World!\");".to_string(),
             },
         );
 

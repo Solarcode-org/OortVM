@@ -7,12 +7,13 @@ use super::access;
 use super::compile;
 use super::lexer;
 
+#[derive(PartialEq, Debug)]
 pub(crate) enum Expr {
-    Integer(i64),
-    Add(Box<Expr>, Box<Expr>),
-    Subtract(Box<Expr>, Box<Expr>),
-    Multiply(Box<Expr>, Box<Expr>),
-    Divide(Box<Expr>, Box<Expr>),
+    _Integer(i64),
+    _Add(Box<Expr>, Box<Expr>),
+    _Subtract(Box<Expr>, Box<Expr>),
+    _Multiply(Box<Expr>, Box<Expr>),
+    _Divide(Box<Expr>, Box<Expr>),
     Func(compile::Compile, Box<Expr>),
     Args(Vec<Expr>),
 }
@@ -22,26 +23,6 @@ pub(crate) fn parse(ir_line: String) -> Expr {
     let mut describe = String::new();
 
     let tokens = lexer::Token::lexer(&ir_line);
-
-    // for word in ir_line.split_whitespace() {
-
-    //     if describe.is_empty() && word.starts_with('%') {
-    //         describe = word[1..].to_string();
-    //     } else {
-    //         match describe.as_str() {
-    //             "func" => {
-    //                 if access::funcs_contains(word.to_string()) {
-    //                     let f = access::funcs_get(word.to_string()).unwrap();
-
-    //                     ast.push(Expr::Func(f, Box::new(Expr::Args(vec![]))))
-    //                 }
-    //             }
-    //             d => {
-    //                 panic!("Unknown descriptor: {d}")
-    //             }
-    //         }
-    //     }
-    // }
 
     for token in tokens {
         let token = get_token(token);
@@ -71,4 +52,19 @@ pub(crate) fn parse(ir_line: String) -> Expr {
     }
 
     Expr::Args(ast)
+}
+
+#[cfg(test)]
+mod parser_tests {
+    use super::*;
+
+    #[test]
+    fn test_parser() {
+        let ast = parse("%func print".to_string());
+
+        let f = access::funcs_get("print".to_string()).unwrap();
+        let expectedf = Expr::Func(f, Box::new(Expr::Args(vec![])));
+
+        assert_eq!(ast, Expr::Args(vec![expectedf]));
+    }
 }

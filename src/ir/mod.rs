@@ -1,4 +1,6 @@
-use std::{fs::write, io::Result, path::Path};
+use std::{ffi::OsStr, fs::write, io::{Result, Write}, path::Path, process::Command};
+
+use tempfile::NamedTempFile;
 
 pub(crate) mod access;
 pub(crate) mod compile;
@@ -25,7 +27,7 @@ pub fn run_ir(ir: String) {
     }
 }
 
-pub fn emit_ir(ir: String, path: &str) -> Result<()> {
+pub fn return_ir(ir: String) -> String {
     let mut c = r#"
 	int main() {
 
@@ -53,7 +55,7 @@ pub fn emit_ir(ir: String, path: &str) -> Result<()> {
                             }
 
                             c = format!("{}\n{}", require, c);
-                            c.push_str(&f.cfunc);
+                            c.push_str(&f.ccode);
                             c.push('\n');
                         }
                         _ => todo!(),
@@ -66,7 +68,39 @@ pub fn emit_ir(ir: String, path: &str) -> Result<()> {
 
     c.push('}');
 
+    c
+}
+
+pub fn emit_ir(ir: String, path: &str) -> Result<()> {
+    let c = return_ir(ir);
+
     let path = Path::new(path);
 
     write(path, c)
+}
+
+fn compile_c<S: AsRef<OsStr>>(cpath: S, opath: &str) -> Result<()> {
+    Command::new("gcc").arg(cpath).args(["-o", opath]).output()?;
+
+    Ok(())
+}
+
+pub fn compile_ir(ir: String, path: &str) -> Result<()> {
+    let c = return_ir(ir);
+    let mut file = NamedTempFile::new()?;
+
+    writeln!(file, "{c}")?;
+
+    compile_c(file.path(), path)?;
+
+    Ok(())
+}
+
+pub fn emit_and_compile_ir(ir: String, cpath: &str, opath: &str) -> Result<()> {
+    let c = return_ir(ir);
+
+    let path = Path::new(cpath);
+    write(path, c)?;
+
+    compile_c(path, opath)
 }

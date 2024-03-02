@@ -1,11 +1,11 @@
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum IRFunc {
     Normal(fn()),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Compile {
     pub(crate) f: IRFunc,
     pub(crate) requires: Vec<String>,
-    pub(crate) cfunc: String,
+    pub(crate) ccode: String,
 }
