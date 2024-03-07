@@ -1,5 +1,6 @@
 use std::io;
 use std::io::{stdout, Write};
+
 use logos::Logos;
 
 use crate::error::error;

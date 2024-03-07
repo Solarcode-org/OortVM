@@ -1,8 +1,9 @@
 use std::{ffi::OsStr, fs::write, io::{Result, Write}, path::Path, process::Command};
 use std::process::exit;
-use c_emit::{CArg, Code};
 
+use c_emit::{CArg, Code};
 use tempfile::NamedTempFile;
+
 use crate::ir::parser::Expr;
 
 pub(crate) mod access;

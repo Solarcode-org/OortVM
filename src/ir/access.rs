@@ -1,8 +1,10 @@
-use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::io;
 use std::io::{stdout, Write};
 use std::sync::Mutex;
+
+use lazy_static::lazy_static;
+
 use crate::ir::parser::Expr;
 
 use super::compile::{Compile, IRFunc};
