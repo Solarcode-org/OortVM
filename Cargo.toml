@@ -1,7 +1,7 @@
 [package]
 name = "oort-vm"
 description = "The Oort Virtual Machine"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 license = "Apache-2.0"
 documentation = "https://docs.rs/oort-vm"
@@ -13,7 +13,7 @@ categories = ["compilers"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-c-emit = "0.1.0"
+c-emit = "0.1.2"
 lazy_static = "1.4.0"
 logos = "0.14.0"
 tempfile = "3.10.1"
