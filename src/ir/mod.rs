@@ -93,7 +93,6 @@ pub fn return_ir_code(ir: String) -> String {
         }
     }
 
-    println!("{c}");
     c.to_string()
 }
 

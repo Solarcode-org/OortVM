@@ -58,19 +58,27 @@ pub(crate) fn parse(ir_line: String) -> Expr {
                             func = f;
                         }
                     }
-                    "arg/string" => {
-                        args.push(Expr::String(ident));
-                    }
                     des => error(format!("Unknown descriptor: {des}").as_str()),
                 }
             }
 
+            lexer::Token::String(s) => {
+                if describe.is_empty() {
+                    error("Expected descriptor before string");
+                }
+
+                match describe.as_str() {
+                    "arg" => {
+                        args.push(Expr::String(s));
+                    }
+                    des => error(format!("Unknown descriptor: {des}").as_str()),
+                }
+            }
             _ => error("Expected descriptor token `%` or Identifier"),
         }
         
     }
     ast.push(Expr::Func(func, Box::new(Expr::Args(args))));
-    println!("{:#?}", ast);
 
     Expr::Args(ast)
 }

@@ -60,9 +60,9 @@ fn print(args: Expr) -> io::Result<()> {
                 }
             }
 
+            println!();
             return stdout().flush();
         }
     }
-
     Ok(())
 }
