@@ -8,19 +8,19 @@ pub use ir::emit_and_compile_ir;
 
 #[cfg(test)]
 mod tests {
-    use super::ir::return_ir;
+    use super::ir::return_ir_code;
 
     #[test]
     fn test_return_ir() {
-        let c = return_ir("%func print".to_string());
+        let c = return_ir_code("%func print".to_string());
 
         let expected = r#"
 #include<stdio.h>
-
 int main() {
-printf("Hello, World!");
+printf();
+return 0;
 }
-        "#.trim().to_string();
+"#.trim_start().to_string();
 
         assert_eq!(c, expected);
     }

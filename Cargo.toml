@@ -13,6 +13,7 @@ categories = ["compilers"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+c-emit = "0.1.0"
 lazy_static = "1.4.0"
 logos = "0.14.0"
 tempfile = "3.10.1"

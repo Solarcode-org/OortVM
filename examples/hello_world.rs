@@ -1,15 +1,15 @@
 use std::io::Result;
 
-use oort_vm::{compile_ir, emit_and_compile_ir, emit_ir, ir::return_ir, run_ir};
+use oort_vm::{compile_ir, emit_and_compile_ir, emit_ir, ir::return_ir_code, run_ir};
 
 fn main() -> Result<()> {
-    let ir_ = "%func print";
+    let ir_ = "%func print %arg/string Hello %arg/string Hello";
 
     run_ir(ir_.to_string());
 
     emit_ir(ir_.to_string(), "examples/emit.c")?;
 
-    println!("{}", return_ir(ir_.to_string()));
+    println!("{}", return_ir_code(ir_.to_string()));
 
     compile_ir(ir_.to_string(), "examples/emit.out")?;
 

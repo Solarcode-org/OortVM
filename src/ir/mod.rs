@@ -1,6 +1,9 @@
 use std::{ffi::OsStr, fs::write, io::{Result, Write}, path::Path, process::Command};
+use std::process::exit;
+use c_emit::{CArg, Code};
 
 use tempfile::NamedTempFile;
+use crate::ir::parser::Expr;
 
 pub(crate) mod access;
 pub(crate) mod compile;
@@ -12,11 +15,17 @@ pub fn run_ir(ir: String) {
         let ast = parser::parse(line.to_string());
 
         match ast {
-            parser::Expr::Args(expr) => {
+            Expr::Args(expr) => {
                 for expr in expr {
                     match expr {
-                        parser::Expr::Func(f, _args) => match f.f {
-                            compile::IRFunc::Normal(f) => f(),
+                        Expr::Func(f, args) => match f.f {
+                            compile::IRFunc::Void(f) => match f(*args) {
+                                Ok(_) => {},
+                                Err(e) => {
+                                    eprintln!("{e}");
+                                    exit(1);
+                                }
+                            },
                         },
                         _ => todo!(),
                     }
@@ -27,36 +36,54 @@ pub fn run_ir(ir: String) {
     }
 }
 
-pub fn return_ir(ir: String) -> String {
-    let mut c = r#"
-	int main() {
-
-	"#
-    .trim()
-    .to_string();
-
-    c.push('\n');
+pub fn return_ir_code(ir: String) -> String {
+    let mut c = Code::new();
+    let mut requires = vec![];
 
     for line in ir.lines() {
         let ast = parser::parse(line.to_string());
 
         match ast {
-            parser::Expr::Args(expr) => {
+            Expr::Args(expr) => {
                 for expr in expr {
                     match expr {
-                        parser::Expr::Func(f, _args) => {
-                            let mut require = String::new();
-
+                        Expr::Func(f, args_) => {
                             for req in f.requires {
-                                require.push_str("#include<");
-                                require.push_str(&req);
-                                require.push('>');
-                                require.push('\n');
+                                if !requires.contains(&req) {
+                                    requires.push(req.clone());
+                                    c.include(&req);
+                                }
                             }
 
-                            c = format!("{}\n{}", require, c);
-                            c.push_str(&f.ccode);
-                            c.push('\n');
+                            let mut args = vec![];
+
+                            match *args_ {
+                                Expr::_Integer(_) => {}
+                                Expr::_Add(_, _) => {}
+                                Expr::_Subtract(_, _) => {}
+                                Expr::_Multiply(_, _) => {}
+                                Expr::_Divide(_, _) => {}
+                                Expr::Func(_, _) => {}
+                                Expr::Args(args_2) => {
+                                    for arg in args_2 {
+                                        match arg {
+                                            Expr::_Integer(_) => {}
+                                            Expr::_Add(_, _) => {}
+                                            Expr::_Subtract(_, _) => {}
+                                            Expr::_Multiply(_, _) => {}
+                                            Expr::_Divide(_, _) => {}
+                                            Expr::Func(_, _) => {}
+                                            Expr::String(s) => {
+                                                args.push(CArg::String(s));
+                                            }
+                                            Expr::Args(_) => {}
+                                        }
+                                    }
+                                }
+                                Expr::String(_) => {}
+                            }
+
+                            c.call_func_with_args(&f.c_func, args);
                         }
                         _ => todo!(),
                     }
@@ -66,27 +93,26 @@ pub fn return_ir(ir: String) -> String {
         }
     }
 
-    c.push('}');
-
-    c
+    println!("{c}");
+    c.to_string()
 }
 
 pub fn emit_ir(ir: String, path: &str) -> Result<()> {
-    let c = return_ir(ir);
+    let c = return_ir_code(ir);
 
     let path = Path::new(path);
 
     write(path, c)
 }
 
-fn compile_c<S: AsRef<OsStr>>(cpath: S, opath: &str) -> Result<()> {
-    Command::new("gcc").arg(cpath).args(["-o", opath]).output()?;
+fn compile_c<S: AsRef<OsStr>>(c_path: S, out_path: &str) -> Result<()> {
+    Command::new("gcc").arg(c_path).args(["-o", out_path]).output()?;
 
     Ok(())
 }
 
 pub fn compile_ir(ir: String, path: &str) -> Result<()> {
-    let c = return_ir(ir);
+    let c = return_ir_code(ir);
     let mut file = NamedTempFile::new()?;
 
     writeln!(file, "{c}")?;
@@ -96,11 +122,11 @@ pub fn compile_ir(ir: String, path: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn emit_and_compile_ir(ir: String, cpath: &str, opath: &str) -> Result<()> {
-    let c = return_ir(ir);
+pub fn emit_and_compile_ir(ir: String, c_path: &str, out_path: &str) -> Result<()> {
+    let c = return_ir_code(ir);
 
-    let path = Path::new(cpath);
+    let path = Path::new(c_path);
     write(path, c)?;
 
-    compile_c(path, opath)
+    compile_c(path, out_path)
 }
