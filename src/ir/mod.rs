@@ -1,3 +1,28 @@
+//! # The IR Module for Orion.
+//!
+//! ## Example
+//!
+//! ```rust
+//! use std::io::Result;
+//!
+//! use oort_vm::{compile_ir, emit_and_compile_ir, emit_ir, ir::return_ir_code, run_ir};
+//!
+//! fn main() -> Result<()> {
+//!     let ir_ = "%func print %arg \"Hello, world!\"";
+//!
+//!     run_ir(ir_.to_string());
+//!
+//!     emit_ir(ir_.to_string(), "examples/emit.c")?;
+//!
+//!     println!("{}", return_ir_code(ir_.to_string()));
+//!
+//!     compile_ir(ir_.to_string(), "examples/emit.out")?;
+//!
+//!     emit_and_compile_ir(ir_.to_string(), "examples/emit.c", "examples/emit.out")
+//! }
+//! ```
+
+
 use std::{ffi::OsStr, fs::write, io::{Result, Write}, path::Path, process::Command};
 use std::process::exit;
 
@@ -11,6 +36,19 @@ pub(crate) mod compile;
 pub(crate) mod lexer;
 pub(crate) mod parser;
 
+/// # Run the IR
+///
+/// ## Example
+///
+/// ```rust
+/// use oort_vm::run_ir;
+///
+/// fn main() {
+///     let ir_ = "%func print %arg \"Hello, world!\"";
+///
+///     run_ir(ir_.to_string());
+/// }
+/// ```
 pub fn run_ir(ir: String) {
     for line in ir.lines() {
         let ast = parser::parse(line.to_string());
@@ -37,6 +75,19 @@ pub fn run_ir(ir: String) {
     }
 }
 
+/// # Return the C equivalent of the IR.
+///
+/// ## Example
+///
+/// ```rust
+/// use oort_vm::ir::return_ir_code;
+///
+/// fn main() {
+///     let ir_ = "%func print %arg \"Hello, world!\"";
+///
+///     println!("{}", return_ir_code(ir_.to_string()));
+/// }
+/// ```
 pub fn return_ir_code(ir: String) -> String {
     let mut c = Code::new();
     let mut requires = vec![];
@@ -97,6 +148,21 @@ pub fn return_ir_code(ir: String) -> String {
     c.to_string()
 }
 
+/// # Emit the C equivalent of the IR to a file.
+///
+/// ## Example
+///
+/// ```rust
+/// use std::io::Result;
+///
+/// use oort_vm::emit_ir;
+///
+/// fn main() -> Result<()> {
+///     let ir_ = "%func print %arg \"Hello, world!\"";
+///
+///     emit_ir(ir_.to_string(), "emit.c")
+/// }
+/// ```
 pub fn emit_ir(ir: String, path: &str) -> Result<()> {
     let c = return_ir_code(ir);
 
@@ -111,6 +177,21 @@ fn compile_c<S: AsRef<OsStr>>(c_path: S, out_path: &str) -> Result<()> {
     Ok(())
 }
 
+/// # Compile the IR to machine code and write the binary to a file.
+///
+/// ## Example
+///
+/// ```rust
+/// use std::io::Result;
+///
+/// use oort_vm::compile_ir;
+///
+/// fn main() -> Result<()> {
+///     let ir_ = "%func print %arg \"Hello, world!\"";
+///
+///     compile_ir(ir_.to_string(), "emit.out")
+/// }
+/// ```
 pub fn compile_ir(ir: String, path: &str) -> Result<()> {
     let c = return_ir_code(ir);
     let mut file = NamedTempFile::new()?;
@@ -122,6 +203,22 @@ pub fn compile_ir(ir: String, path: &str) -> Result<()> {
     Ok(())
 }
 
+#[doc("# Emit the C equivalent of the IR to a file and compile the IR to machine code and write the
+binary to a file.")]
+///
+/// ## Example
+///
+/// ```rust
+/// use std::io::Result;
+///
+/// use oort_vm::emit_and_compile_ir;
+///
+/// fn main() -> Result<()> {
+///     let ir_ = "%func print %arg \"Hello, world!\"";
+///
+///     emit_and_compile_ir(ir_.to_string(), "emit.c", "emit.out")
+/// }
+/// ```
 pub fn emit_and_compile_ir(ir: String, c_path: &str, out_path: &str) -> Result<()> {
     let c = return_ir_code(ir);
 
