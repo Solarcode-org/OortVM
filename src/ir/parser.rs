@@ -12,17 +12,12 @@ use super::lexer;
 
 #[derive(PartialEq, Debug)]
 pub(crate) enum Expr {
-    _Integer(i64),
-    _Add(Box<Expr>, Box<Expr>),
-    _Subtract(Box<Expr>, Box<Expr>),
-    _Multiply(Box<Expr>, Box<Expr>),
-    _Divide(Box<Expr>, Box<Expr>),
     Func(Compile, Box<Expr>),
     String(String),
     Args(Vec<Expr>),
 }
 
-pub(crate) fn parse(ir_line: String) -> Expr {
+pub(crate) fn parse<T: AsRef<str>>(ir_line: T) -> Expr {
     let mut ast = vec![];
     let mut describe = String::new();
 
@@ -33,12 +28,12 @@ pub(crate) fn parse(ir_line: String) -> Expr {
     let mut func = Compile {
         f: IRFunc::Void(default),
         requires: vec![],
-        c_func: "".to_string(),
+        c_func: String::new(),
     };
 
     let mut args = vec![];
 
-    let tokens = lexer::Token::lexer(&ir_line);
+    let tokens = lexer::Token::lexer(ir_line.as_ref());
 
     for token in tokens {
         let token = get_token(token);
@@ -90,7 +85,7 @@ mod parser_tests {
 
     #[test]
     fn test_parser() {
-        let ast = parse("%func print".to_string());
+        let ast = parse("%func print");
 
         let f = access::get_from_functions("print".to_string()).unwrap();
         let expected_func = Expr::Func(f, Box::new(Expr::Args(vec![])));

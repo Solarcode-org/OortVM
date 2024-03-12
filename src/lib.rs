@@ -41,12 +41,12 @@ mod tests {
 
     #[test]
     fn test_return_ir() {
-        let c = return_ir_code("%func print".to_string());
+        let c = return_ir_code("%func print %arg \"Hello, world!\"".to_string());
 
         let expected = r#"
 #include<stdio.h>
 int main() {
-printf();
+printf("Hello, world!");
 return 0;
 }
 "#.trim_start().to_string();

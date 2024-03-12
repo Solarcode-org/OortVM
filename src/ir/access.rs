@@ -4,6 +4,7 @@ use std::io::{stdout, Write};
 use std::sync::Mutex;
 
 use lazy_static::lazy_static;
+use crate::error::cure_poison;
 
 use crate::ir::parser::Expr;
 
@@ -26,45 +27,28 @@ lazy_static! {
     };
 }
 
-pub(crate) fn get_from_functions(f: String) -> Option<Compile> {
-    let functions = FUNCS.lock().unwrap();
-    let get = functions.get(&f);
+pub(crate) fn get_from_functions<T: ToString>(f: T) -> Option<Compile> {
+    let functions = cure_poison(FUNCS.lock());
+    let get = functions.get(&f.to_string());
 
     get.cloned()
 }
 
-pub(crate) fn functions_contains(f: &String) -> bool {
-    FUNCS.lock().unwrap().contains_key(f)
+pub(crate) fn functions_contains<T: ToString>(f: &T) -> bool {
+    let functions = cure_poison(FUNCS.lock());
+    functions.contains_key(&f.to_string())
 }
 
 fn print(args: Expr) -> io::Result<()> {
-    match args {
-        Expr::_Integer(_) => {}
-        Expr::_Add(_, _) => {}
-        Expr::_Subtract(_, _) => {}
-        Expr::_Multiply(_, _) => {}
-        Expr::_Divide(_, _) => {}
-        Expr::Func(_, _) => {}
-        Expr::String(_) => {}
-        Expr::Args(args) => {
-            for arg in args {
-                match arg {
-                    Expr::_Integer(_) => {}
-                    Expr::_Add(_, _) => {}
-                    Expr::_Subtract(_, _) => {}
-                    Expr::_Multiply(_, _) => {}
-                    Expr::_Divide(_, _) => {}
-                    Expr::Func(_, _) => {}
-                    Expr::String(s) => {
-                        print!("{}", s);
-                    }
-                    Expr::Args(_) => {}
-                }
+    if let Expr::Args(args) = args {
+        for arg in args {
+            if let Expr::String(s) = arg {
+                print!("{}", s);
             }
-
-            println!();
-            return stdout().flush();
         }
+
+        stdout().flush()?;
+        println!();
     }
     Ok(())
 }
