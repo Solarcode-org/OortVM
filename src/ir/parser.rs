@@ -10,7 +10,7 @@ use crate::ir::compile::{Compile, IRFunc};
 use super::access;
 use super::lexer;
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Expr {
     Func(Compile, Box<Expr>),
     String(String),

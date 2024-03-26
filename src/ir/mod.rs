@@ -35,6 +35,7 @@ pub(crate) mod access;
 pub(crate) mod compile;
 pub(crate) mod lexer;
 pub(crate) mod parser;
+pub(crate) mod construct;
 
 /// # Run the IR
 ///
@@ -63,6 +64,13 @@ pub fn run_ir<T: ToString>(ir: T) {
                                     exit(1);
                                 }
                             },
+                            compile::IRFunc::String(f) => match f(*args) {
+                                Ok(_) => {},
+                                Err(e) => {
+                                    eprintln!("{e}");
+                                    exit(1);
+                                }
+                            }
                         },
                         _ => todo!(),
                     }

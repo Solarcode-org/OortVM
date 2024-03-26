@@ -31,6 +31,7 @@ pub use ir::compile_ir;
 pub use ir::emit_and_compile_ir;
 pub use ir::emit_ir;
 pub use ir::run_ir;
+pub use ir::construct::{IRCode, IRArg};
 
 mod error;
 pub mod ir;
