@@ -22,9 +22,14 @@
 //! }
 //! ```
 
-
-use std::{ffi::OsStr, fs::write, io::{Result, Write}, path::Path, process::Command};
 use std::process::exit;
+use std::{
+    ffi::OsStr,
+    fs::write,
+    io::{Result, Write},
+    path::Path,
+    process::Command,
+};
 
 use c_emit::{CArg, Code};
 use tempfile::NamedTempFile;
@@ -59,7 +64,7 @@ pub fn run_ir(ir: String) {
                     match expr {
                         Expr::Func(f, args) => match f.f {
                             compile::IRFunc::Void(f) => match f(*args) {
-                                Ok(_) => {},
+                                Ok(_) => {}
                                 Err(e) => {
                                     eprintln!("{e}");
                                     exit(1);
@@ -172,7 +177,10 @@ pub fn emit_ir(ir: String, path: &str) -> Result<()> {
 }
 
 fn compile_c<S: AsRef<OsStr>>(c_path: S, out_path: &str) -> Result<()> {
-    Command::new("gcc").arg(c_path).args(["-o", out_path]).output()?;
+    Command::new("gcc")
+        .arg(c_path)
+        .args(["-o", out_path])
+        .output()?;
 
     Ok(())
 }
@@ -203,8 +211,8 @@ pub fn compile_ir(ir: String, path: &str) -> Result<()> {
     Ok(())
 }
 
-#[doc("# Emit the C equivalent of the IR to a file and compile the IR to machine code and write the
-binary to a file.")]
+#[doc = "# Emit the C equivalent of the IR to a file and compile the IR to machine code and write the
+binary to a file."]
 ///
 /// ## Example
 ///
