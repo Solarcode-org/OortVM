@@ -1,7 +1,10 @@
+use std::process::exit;
+
 use crate::ir::lexer::Token;
 
 pub(crate) fn error(msg: &str) -> ! {
-    panic!("{msg}");
+    eprintln!("Error: {msg}!");
+    exit(101);
 }
 
 pub(crate) fn get_token(res: Result<Token, ()>) -> Token {

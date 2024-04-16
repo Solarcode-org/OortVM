@@ -36,6 +36,8 @@ use tempfile::NamedTempFile;
 
 use crate::ir::parser::Expr;
 
+use self::access::setup_functions;
+
 pub(crate) mod access;
 pub(crate) mod compile;
 pub(crate) mod lexer;
@@ -55,8 +57,10 @@ pub(crate) mod parser;
 /// }
 /// ```
 pub fn run_ir(ir: String) {
+    let functions = setup_functions();
+
     for line in ir.lines() {
-        let ast = parser::parse(line.to_string());
+        let ast = parser::parse(line.to_string(), &functions);
 
         match ast {
             Expr::Args(expr) => {
@@ -96,9 +100,10 @@ pub fn run_ir(ir: String) {
 pub fn return_ir_code(ir: String) -> String {
     let mut c = Code::new();
     let mut requires = vec![];
+    let functions = setup_functions();
 
     for line in ir.lines() {
-        let ast = parser::parse(line.to_string());
+        let ast = parser::parse(line.to_string(), &functions);
 
         match ast {
             Expr::Args(expr) => {
@@ -115,29 +120,17 @@ pub fn return_ir_code(ir: String) -> String {
                             let mut args = vec![];
 
                             match *args_ {
-                                Expr::_Integer(_) => {}
-                                Expr::_Add(_, _) => {}
-                                Expr::_Subtract(_, _) => {}
-                                Expr::_Multiply(_, _) => {}
-                                Expr::_Divide(_, _) => {}
-                                Expr::Func(_, _) => {}
                                 Expr::Args(args_2) => {
                                     for arg in args_2 {
                                         match arg {
-                                            Expr::_Integer(_) => {}
-                                            Expr::_Add(_, _) => {}
-                                            Expr::_Subtract(_, _) => {}
-                                            Expr::_Multiply(_, _) => {}
-                                            Expr::_Divide(_, _) => {}
-                                            Expr::Func(_, _) => {}
                                             Expr::String(s) => {
                                                 args.push(CArg::String(s));
                                             }
-                                            Expr::Args(_) => {}
+                                            _ => {}
                                         }
                                     }
                                 }
-                                Expr::String(_) => {}
+                                _ => {}
                             }
 
                             c.call_func_with_args(&f.c_func, args);

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io;
 use std::io::{stdout, Write};
 
@@ -7,22 +8,17 @@ use crate::error::error;
 use crate::error::get_token;
 use crate::ir::compile::{Compile, IRFunc};
 
-use super::access;
 use super::lexer;
 
 #[derive(PartialEq, Debug)]
 pub(crate) enum Expr {
-    _Integer(i64),
-    _Add(Box<Expr>, Box<Expr>),
-    _Subtract(Box<Expr>, Box<Expr>),
-    _Multiply(Box<Expr>, Box<Expr>),
-    _Divide(Box<Expr>, Box<Expr>),
+    Number(f64),
     Func(Compile, Box<Expr>),
     String(String),
     Args(Vec<Expr>),
 }
 
-pub(crate) fn parse(ir_line: String) -> Expr {
+pub(crate) fn parse(ir_line: String, functions: &HashMap<String, Compile>) -> Expr {
     let mut ast = vec![];
     let mut describe = String::new();
 
@@ -53,10 +49,10 @@ pub(crate) fn parse(ir_line: String) -> Expr {
 
                 match describe.as_str() {
                     "func" => {
-                        if access::functions_contains(&ident) {
-                            let f = access::get_from_functions(ident).unwrap();
+                        if functions.contains_key(&ident) {
+                            let f = functions.get(&ident).unwrap();
 
-                            func = f;
+                            func = f.clone();
                         }
                     }
                     des => error(format!("Unknown descriptor: {des}").as_str()),
@@ -75,9 +71,21 @@ pub(crate) fn parse(ir_line: String) -> Expr {
                     des => error(format!("Unknown descriptor: {des}").as_str()),
                 }
             }
+
+            lexer::Token::Number(n) => {
+                if describe.is_empty() {
+                    error("Expected descriptor before number");
+                }
+
+                match describe.as_str() {
+                    "arg" => {
+                        args.push(Expr::Number(n));
+                    }
+                    des => error(format!("Unknown descriptor: {des}").as_str()),
+                }
+            }
             _ => error("Expected descriptor token `%` or Identifier"),
         }
-        
     }
     ast.push(Expr::Func(func, Box::new(Expr::Args(args))));
 
@@ -87,13 +95,15 @@ pub(crate) fn parse(ir_line: String) -> Expr {
 #[cfg(test)]
 mod parser_tests {
     use super::*;
+    use crate::ir::setup_functions;
 
     #[test]
     fn test_parser() {
-        let ast = parse("%func print".to_string());
+        let functions = setup_functions();
+        let ast = parse("%func print".to_string(), &functions);
 
-        let f = access::get_from_functions("print".to_string()).unwrap();
-        let expected_func = Expr::Func(f, Box::new(Expr::Args(vec![])));
+        let f = functions.get(&"print".to_string()).unwrap();
+        let expected_func = Expr::Func(f.clone(), Box::new(Expr::Args(vec![])));
 
         assert_eq!(ast, Expr::Args(vec![expected_func]));
     }
